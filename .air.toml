@@ -1,0 +1,11 @@
+# .air.toml
+
+root = "."
+tmp_dir = "tmp"
+build_cmd = "go build -o {{.Output}} {{.MainFile}}"
+run_cmd = "./{{.Output}}"
+exclude_dir = ["tmp", "vendor"]
+
+[build]
+binary_name = "app"
+main = "serve.go"
