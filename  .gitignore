@@ -1,0 +1,7 @@
+tmp/
+vendor/
+
+# Ignorar archivos generados por IDEs o editores de texto
+.idea/
+.vscode/
+
