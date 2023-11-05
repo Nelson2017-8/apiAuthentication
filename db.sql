@@ -15,6 +15,3 @@ CREATE TABLE IF NOT EXISTS public.users
 
 ALTER TABLE IF EXISTS public.users
     OWNER TO postgres;
-
-INSERT INTO public.users (email, name, address, password, phone, token, session_active)
-VALUES ('prueba@fakemail.com', 'prueba', 'prueba', '$2a$10$AfrEu8/Fkkalyb.91R817OpeeOR9yN0cigRURIjXBxVagMbyGWzTa', 'prueba', '', FALSE);

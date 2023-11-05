@@ -29,6 +29,30 @@ type LoginData struct {
 	Phone    string `json:"phone"`
 }
 
+func CreateUserIfNotExists() {
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM users").Scan(&count)
+	if err != nil {
+		fmt.Errorf("error al contar los usuarios: %w", err)
+	}
+
+	if count == 0 {
+		user := new(User)
+		user.Email = "prueba@fakemail.com"
+		user.Password = "$2a$10$AfrEu8/Fkkalyb.91R817OpeeOR9yN0cigRURIjXBxVagMbyGWzTa"
+		user.SessionActive = false
+		user.Name = "prueba"
+		user.Address = "prueba"
+
+		err := CreateUser(*user)
+		if err != nil {
+			fmt.Println("No se pudo crear el usuario de pruebas, " + err.Error())
+			return
+		}
+	}
+
+}
+
 // crea usuario
 func CreateUser(user User) error {
 
