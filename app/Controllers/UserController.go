@@ -14,8 +14,14 @@ type UserController struct{}
 
 var validate Validations.UserValidation
 
-// crear usuario
+// crear usuario (require token)
 func (uc *UserController) CreateUser(c *gin.Context) {
+	// Authenticacion por token requerida
+	err := AuthToken(c)
+	if err != nil {
+		return
+	}
+
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		log.Println("Error al obtener los datos del usuario:", err)
@@ -86,8 +92,15 @@ func (uc *UserController) CreateUser(c *gin.Context) {
 
 }
 
-// Buscar un usuario
+// Buscar un usuario (require token)
 func (uc *UserController) GetUser(c *gin.Context) {
+
+	// Authenticacion por token requerida
+	err := AuthToken(c)
+	if err != nil {
+		return
+	}
+
 	// Aquí puedes obtener el ID del usuario desde la solicitud (request)
 	id, err := strconv.Atoi(c.Param("id_user"))
 	if err != nil {
@@ -130,8 +143,15 @@ func (uc *UserController) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// Actualizar un usuario
+// Actualizar un usuario (require token)
 func (uc *UserController) UpdateUser(c *gin.Context) {
+
+	// Authenticacion por token requerida
+	err := AuthToken(c)
+	if err != nil {
+		return
+	}
+
 	// Aquí puedes obtener el ID del usuario desde la solicitud (request)
 	id, err := strconv.Atoi(c.Param("id_user"))
 	if err != nil {
@@ -166,7 +186,8 @@ func (uc *UserController) UpdateUser(c *gin.Context) {
 	}
 
 	// codificamos la password
-	hashedPassword, err := utils.HashPassword(updatedUser.Password)
+	password := updatedUser.Password
+	hashedPassword, err := utils.HashPassword(password)
 	if err != nil {
 		log.Println("No se pudo encriptar la contraseña:", err)
 		c.JSON(500, gin.H{})
@@ -197,14 +218,20 @@ func (uc *UserController) UpdateUser(c *gin.Context) {
 		Name:     updatedUser.Name,
 		Phone:    updatedUser.Phone,
 		Address:  updatedUser.Address,
-		Password: updatedUser.Password,
+		Password: password,
 	}
 	// Respuesta exitosa
 	c.JSON(http.StatusOK, response)
 }
 
-// Elimina un usuario
+// Elimina un usuario (require token)
 func (uc *UserController) DeleteUser(c *gin.Context) {
+	// Authenticacion por token requerida
+	err := AuthToken(c)
+	if err != nil {
+		return
+	}
+
 	// Aquí puedes obtener el ID del usuario desde la solicitud (request)
 	id, err := strconv.Atoi(c.Param("id_user"))
 	if err != nil {
@@ -278,7 +305,11 @@ func (uc *UserController) Login(c *gin.Context) {
 	}
 
 	// Llama a la función para verificar las credenciales de inicio de sesión
-	user, err := models.VerifyCredentials(loginData.Email, loginData.Password)
+	var user *models.User
+	var err error
+
+	// autentificacion por el email
+	user, err = models.VerifyCredentials(loginData.Email, loginData.Password, loginData.Phone)
 	if err != nil {
 		log.Println("Error al verificar las credenciales de inicio de sesión:", err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Credenciales de inicio de sesión inválidas"})
@@ -294,8 +325,11 @@ func (uc *UserController) Login(c *gin.Context) {
 	}
 	user.Token = token
 
-	// Actualiza el valor de session_active en la base de datos
-	err = models.UpdateSessionActive(true, *user)
+	// Actualiza el valor en la estructura del usuario
+	user.SessionActive = true
+
+	// Actualiza la sesion en la base de datos
+	err = models.UpdateSessionActive(*user)
 	if err != nil {
 		log.Println("Error al actualizar el valor de session_active:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al actualizar el valor de session_active"})
@@ -313,14 +347,15 @@ func (uc *UserController) Login(c *gin.Context) {
 		SessionActive bool   `json:"session_active"`
 		TokenType     string `json:"token_type"`
 	}{
-		Email:       user.Email,
-		Name:        user.Name,
-		Phone:       user.Phone,
-		Address:     user.Address,
-		ID:          user.ID,
-		AccessToken: user.Token,
-		TokenType:   "bearer",
+		Email:         user.Email,
+		Name:          user.Name,
+		Phone:         user.Phone,
+		Address:       user.Address,
+		ID:            user.ID,
+		AccessToken:   user.Token,
+		SessionActive: user.SessionActive,
+		TokenType:     "bearer",
 	}
 	// Respuesta exitosa
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, gin.H{"user": response})
 }

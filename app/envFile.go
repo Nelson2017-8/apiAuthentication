@@ -16,6 +16,7 @@ type Config struct {
 	PostgresPort     string
 	UrlBase          string
 	Port             string
+	SecretKeyJWT     string
 }
 
 type ConfigInterface interface {
@@ -23,6 +24,9 @@ type ConfigInterface interface {
 }
 
 func (c Config) GetURLBase() string {
+	return c.UrlBase + c.Port
+}
+func (c Config) GetSecretKey() string {
 	return c.UrlBase + c.Port
 }
 
@@ -46,6 +50,7 @@ func EnvFileRead() Config {
 		PostgresPort:     os.Getenv("postgresPort" + str),
 		UrlBase:          os.Getenv("urlBase" + str),
 		Port:             os.Getenv("port" + str),
+		SecretKeyJWT:     os.Getenv("secretKeyJWT"),
 	}
 
 	return config

@@ -1,6 +1,8 @@
 package Utils
 
 import (
+	"errors"
+	"github.com/Nelson2017-8/ApiAuthentication/app"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 	"time"
@@ -32,7 +34,7 @@ func ComparePassword(password, hashedPassword string) error {
 	return nil
 }
 
-var jwtKey = []byte("my_secret_key")
+var jwtKey = []byte(app.EnvFileRead().SecretKeyJWT)
 
 type Claims struct {
 	UserID int `json:"user_id"`
@@ -57,6 +59,30 @@ func GenerateToken(userID int) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+// Validar el token y obtener los datos del usuario
+func ValidateToken(tokenString string) (*Claims, error) {
+	// Parsear el token y verificar la firma
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Verificar si el token es válido
+	if !token.Valid {
+		return nil, errors.New("Token de autenticación inválido")
+	}
+
+	// Obtener los datos del usuario del token
+	claims, ok := token.Claims.(*Claims)
+	if !ok {
+		return nil, errors.New("No se pudieron obtener los datos del usuario del token")
+	}
+
+	return claims, nil
 }
 
 // convertir int a boolean

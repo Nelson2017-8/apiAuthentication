@@ -9,7 +9,6 @@ import (
 )
 
 func main() {
-
 	// Realizamos la conexion a la base de datos una vez
 	Models.GetDBConnection()
 

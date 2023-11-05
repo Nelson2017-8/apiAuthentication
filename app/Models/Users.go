@@ -26,6 +26,7 @@ type User struct {
 type LoginData struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+	Phone    string `json:"phone"`
 }
 
 // crea usuario
@@ -51,6 +52,9 @@ func FindUser(id int) (User, error) {
 	var user User
 	err := row.Scan(&user.ID, &user.Name, &user.Email, &user.Phone, &user.Address, &user.Token, &user.SessionActive, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return User{}, fmt.Errorf("error al leer el usuario: Este usuario ya no existe en la base de datos")
+		}
 		return User{}, fmt.Errorf("error al leer el usuario: %w", err)
 	}
 
@@ -66,6 +70,9 @@ func FindUserEmail(email string) (User, error) {
 	var user User
 	err := row.Scan(&user.ID, &user.Name, &user.Email, &user.Phone, &user.Address, &user.Token, &user.SessionActive, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return User{}, fmt.Errorf("error al leer el usuario: Este usuario ya no existe en la base de datos")
+		}
 		return User{}, fmt.Errorf("error al leer el usuario: %w", err)
 	}
 
@@ -143,14 +150,25 @@ func CheckEmailUser(email string) error {
 }
 
 // Verificar las credenciales de inicio de sesión en la base de datos
-func VerifyCredentials(email, password string) (*User, error) {
-	query := "SELECT password FROM users WHERE email = $1"
-	row := db.QueryRow(query, email)
+func VerifyCredentials(email, password, phone string) (*User, error) {
+	var query string
+	input := phone
+
+	// si es autentificacion por email o por telefono
+	if email != "" {
+		query = "SELECT id, name, email, phone, address, token, session_active, created_at, updated_at, password FROM users WHERE email = $1"
+		input = email
+	} else {
+		query = "SELECT id, name, email, phone, address, token, session_active, created_at, updated_at, password FROM users WHERE phone = $1 LIMIT 1"
+	}
+	fmt.Println(query)
+	row := db.QueryRow(query, input)
 
 	var user User
-	err := row.Scan(&user.Password)
+	err := row.Scan(&user.ID, &user.Name, &user.Email, &user.Phone, &user.Address, &user.Token, &user.SessionActive, &user.CreatedAt, &user.UpdatedAt, &user.Password)
 
 	if err != nil {
+		fmt.Println(err)
 		return nil, errors.New("Credenciales de inicio de sesión inválidas")
 	}
 
@@ -165,15 +183,13 @@ func VerifyCredentials(email, password string) (*User, error) {
 }
 
 // Actualizar la sesión
-func UpdateSessionActive(sessionActive bool, user User) error {
+func UpdateSessionActive(user User) error {
 	query := "UPDATE users SET session_active = $2, token = $3, updated_at = NOW() WHERE id = $1"
-	_, err := db.Exec(query, user.ID, sessionActive, user.Token)
+	_, err := db.Exec(query, user.ID, user.SessionActive, user.Token)
 	if err != nil {
 		return err
 	}
 
-	// Actualiza el valor en la estructura del usuario
-	user.SessionActive = sessionActive
-
+	fmt.Println("Token actualizado")
 	return nil
 }

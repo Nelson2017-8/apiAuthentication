@@ -9,14 +9,6 @@ var userController controllers.UserController
 
 // Rutas (END-POINTS)
 func URLs(r *gin.Engine) {
-	// Ruta de inicio
-	r.GET("/", func(c *gin.Context) {
-
-		c.JSON(404, gin.H{
-			"message": "¡Esta ruta no existe!",
-		})
-	})
-
 	// GRUPO DE RUTAS
 	apiRoutes := r.Group("/api/v1")
 	userRoutes := apiRoutes.Group("/users")
