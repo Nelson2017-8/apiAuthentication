@@ -5,6 +5,7 @@ tmp_dir = "tmp"
 build_cmd = "go build -o {{.Output}} {{.MainFile}}"
 run_cmd = "./{{.Output}}"
 exclude_dir = [".git", ".idea", "tmp", "vendor"]
+exclude_file = ["_test.go"]
 
 [build]
 binary_name = "app"

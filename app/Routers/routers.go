@@ -2,6 +2,7 @@ package Routers
 
 import (
 	controllers "github.com/Nelson2017-8/ApiAuthentication/app/Controllers"
+	"github.com/Nelson2017-8/ApiAuthentication/app/Models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -9,6 +10,9 @@ var userController controllers.UserController
 
 // Rutas (END-POINTS)
 func URLs(r *gin.Engine) {
+	// Realizamos la conexion a la base de datos una vez
+	Models.GetDBConnection()
+
 	// GRUPO DE RUTAS
 	apiRoutes := r.Group("/api/v1")
 	userRoutes := apiRoutes.Group("/users")

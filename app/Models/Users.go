@@ -43,6 +43,7 @@ func CreateUserIfNotExists() {
 		user.SessionActive = false
 		user.Name = "prueba"
 		user.Address = "prueba"
+		user.Phone = "prueba"
 
 		err := CreateUser(*user)
 		if err != nil {
@@ -55,6 +56,9 @@ func CreateUserIfNotExists() {
 
 // crea usuario
 func CreateUser(user User) error {
+	if db == nil {
+		return fmt.Errorf("La instacia de la base de datos no existe")
+	}
 
 	query := "INSERT INTO users (email, name, phone, address, password, token) VALUES ($1, $2, $3, $4, $5, $6)"
 	_, err := db.Exec(query, user.Email, user.Name, user.Phone, user.Address, user.Password, user.Token)
@@ -69,6 +73,9 @@ func CreateUser(user User) error {
 
 // buscar un usuario por su ID
 func FindUser(id int) (User, error) {
+	if db == nil {
+		return User{}, fmt.Errorf("La instacia de la base de datos no existe")
+	}
 
 	query := "SELECT id, name, email, phone, address, token, session_active, created_at, updated_at FROM users WHERE id = $1"
 	row := db.QueryRow(query, id)
@@ -87,7 +94,9 @@ func FindUser(id int) (User, error) {
 
 // buscar un usuario por su Email
 func FindUserEmail(email string) (User, error) {
-
+	if db == nil {
+		return User{}, fmt.Errorf("La instacia de la base de datos no existe")
+	}
 	query := "SELECT id, name, email, phone, address, token, session_active, created_at, updated_at FROM users WHERE email = $1"
 	row := db.QueryRow(query, email)
 
@@ -105,6 +114,9 @@ func FindUserEmail(email string) (User, error) {
 
 // actualizar usuario
 func UpdateUser(user User) error {
+	if db == nil {
+		return fmt.Errorf("La instacia de la base de datos no existe")
+	}
 
 	query := "UPDATE users SET email = $2, name = $3, phone = $4, address = $5, password = $6, token = $7, updated_at = NOW() WHERE id = $1"
 	_, err := db.Exec(query, user.ID, user.Email, user.Name, user.Phone, user.Address, user.Password, user.Token)
@@ -118,6 +130,9 @@ func UpdateUser(user User) error {
 
 // eliminar usuario
 func DeleteUser(id int) error {
+	if db == nil {
+		return fmt.Errorf("La instacia de la base de datos no existe")
+	}
 
 	query := "DELETE FROM users WHERE id = $1"
 	_, err := db.Exec(query, id)
@@ -131,6 +146,9 @@ func DeleteUser(id int) error {
 
 // Obtener usuarios
 func GetUsers() ([]User, error) {
+	if db == nil {
+		return nil, fmt.Errorf("La instacia de la base de datos no existe")
+	}
 
 	query := "SELECT id, name, email, phone, address, token, session_active, created_at, updated_at FROM users"
 	rows, err := db.Query(query)
@@ -158,6 +176,10 @@ func GetUsers() ([]User, error) {
 
 // comprobar que el email este disponible
 func CheckEmailUser(email string) error {
+	if db == nil {
+		return fmt.Errorf("La instacia de la base de datos no existe")
+	}
+
 	query := "SELECT COUNT(*) FROM users WHERE email = $1"
 	var count int
 	err := db.QueryRow(query, email).Scan(&count)
@@ -175,6 +197,10 @@ func CheckEmailUser(email string) error {
 
 // Verificar las credenciales de inicio de sesión en la base de datos
 func VerifyCredentials(email, password, phone string) (*User, error) {
+	if db == nil {
+		return &User{}, fmt.Errorf("La instacia de la base de datos no existe")
+	}
+
 	var query string
 	input := phone
 
@@ -208,6 +234,10 @@ func VerifyCredentials(email, password, phone string) (*User, error) {
 
 // Actualizar la sesión
 func UpdateSessionActive(user User) error {
+	if db == nil {
+		return fmt.Errorf("La instacia de la base de datos no existe")
+	}
+
 	query := "UPDATE users SET session_active = $2, token = $3, updated_at = NOW() WHERE id = $1"
 	_, err := db.Exec(query, user.ID, user.SessionActive, user.Token)
 	if err != nil {
