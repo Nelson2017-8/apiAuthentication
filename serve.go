@@ -12,6 +12,9 @@ func main() {
 	// Realizamos la conexion a la base de datos una vez
 	Models.GetDBConnection()
 
+	// Crea el usuario de pruebas
+	Models.CreateUserIfNotExists()
+
 	// leemos el env file que contiene la configuracion del proyecto
 	envFile := app.EnvFileRead()
 
