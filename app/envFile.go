@@ -3,6 +3,8 @@ package app
 import (
 	"log"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -31,7 +33,22 @@ func (c Config) GetSecretKey() string {
 }
 
 func EnvFileRead() Config {
-	err := godotenv.Load(".env")
+	rootDir, err := os.Getwd()
+	if err != nil {
+		log.Fatal("Error al obtener el directorio de trabajo actual")
+	}
+	envFilePath := filepath.Join(rootDir, ".env")
+
+	maxLevels := 10
+	for i := 0; i < maxLevels; i++ {
+		envFilePath = strings.Repeat("../", i) + ".env"
+		err := godotenv.Load(envFilePath)
+		if err == nil {
+			break
+		}
+	}
+
+	err = godotenv.Load(envFilePath)
 	if err != nil {
 		log.Fatal("Error al cargar el archivo .env")
 	}
